@@ -44,4 +44,4 @@ def tokenize_and_analyse(data: TextInput):
     total_elapsed = time.perf_counter() - total_start_time
     print(f"[Total Request] Time taken: {total_elapsed * 1000:.2f} ms")
 
-    return sentiment
+    return sentiment, text_content

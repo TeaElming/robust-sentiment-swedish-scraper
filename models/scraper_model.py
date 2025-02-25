@@ -1,19 +1,20 @@
 import requests
 from bs4 import BeautifulSoup, Tag
-from bs4.element import NavigableString
 import time
 
-"""
-     Fetches and extracts the main heading (H1) from the <article> section of a given webpage.
 
-     Args:
-         url (str): The URL of the webpage to scrape.
-
-     Returns:
-         str: The extracted H1 content if found, otherwise an error message.
-"""
 def scrape_url(url):
+    """
+    Fetches and extracts the main heading (H1) from the <article> section of a given webpage.
+
+    Args:
+        url (str): The URL of the webpage to scrape.
+
+    Returns:
+        str: The extracted H1 text if found, otherwise an error message.
+    """
     start_time = time.perf_counter()
+
     try:
         resp = requests.get(url)
         resp.raise_for_status()
@@ -27,28 +28,19 @@ def scrape_url(url):
     if not isinstance(article_section, Tag):  # Ensure it's a valid tag
         return "No <article> section found on this page."
 
-    # Extract relevant tags only within <article>
-    allowed_tags = ['h1']
-    extracted_content = []
+    # Extract H1 text from <article>
+    h1_tag = article_section.find('h1')
+    if not h1_tag or not isinstance(h1_tag, Tag):
+        return "No H1 found in the article."
 
-    for tag in article_section.find_all(allowed_tags):
-        if not isinstance(tag, Tag):  # Ensure tag is a proper BeautifulSoup Tag
-            continue
+    # Extract only the visible text from the <h1> tag
+    # Strip removes extra spaces & line breaks
+    h1_text = h1_tag.get_text(strip=True)
 
-        # Remove images inside the tags
-        for img in tag.find_all('img'):
-            img.decompose()
+    # TODO: Remove this
+    print("Scraped Title: ", h1_text)
 
-        # Convert <a> links to plain text
-        for a in tag.find_all('a'):
-            if isinstance(a, Tag) and 'href' in a.attrs:
-                # Ensures replace_with receives valid input
-                a.replace_with(NavigableString(a.get_text()))
-
-        extracted_content.append(str(tag))
-
-    content = " ".join(extracted_content)
     elapsed = time.perf_counter() - start_time
     print(f"[Scraping] Time taken: {elapsed * 1000:.2f} ms")
 
-    return content  # Ensure function returns a string, not a list
+    return h1_text  # Returns only the raw text, no HTML
